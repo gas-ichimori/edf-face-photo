@@ -200,6 +200,63 @@ body::after {
   max-width: 320px;
 }
 
+/* ===== CAPTURE ===== */
+#screen-capture { background: #000; overflow: hidden; }
+#preview-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.capture-guide {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.capture-svg {
+  width: 100%; height: 100%;
+  position: absolute; inset: 0;
+}
+.capture-ui {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  padding-bottom: 14vh;
+  gap: 12px;
+  text-align: center;
+}
+.capture-instruction {
+  font-family: var(--font-m);
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.55);
+  padding: 8px 18px;
+  border-radius: 4px;
+}
+.capture-countdown {
+  font-family: var(--font-h);
+  font-size: 80px;
+  font-weight: 900;
+  color: var(--red);
+  text-shadow: 0 0 40px rgba(204,0,0,0.9);
+  line-height: 1;
+  animation: count-pulse 1s ease-out infinite;
+}
+@keyframes count-pulse {
+  0% { transform: scale(1.15); opacity: 0.7; }
+  40% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.capture-sub {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.5);
+}
+
 /* ===== PROCESSING ===== */
 #screen-processing { background: #000; gap: 20px; text-align: center; }
 .processing-label {
@@ -318,6 +375,30 @@ body::after {
 <div id="screen-wrong" class="screen">
   <div class="wrong-label">不正解！</div>
   <div class="wrong-text" id="wrong-text"></div>
+</div>
+
+<!-- ===== CAPTURE ===== -->
+<div id="screen-capture" class="screen">
+  <video id="preview-video" autoplay playsinline muted></video>
+  <div class="capture-guide">
+    <!-- 楕円ガイド: 背景画像のOVAL位置に合わせた参考枠 -->
+    <svg class="capture-svg" viewBox="0 0 100 178" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <mask id="oval-mask">
+          <rect width="100" height="178" fill="white"/>
+          <ellipse cx="50" cy="67" rx="15" ry="17" fill="black"/>
+        </mask>
+      </defs>
+      <rect width="100" height="178" fill="rgba(0,0,0,0.5)" mask="url(#oval-mask)"/>
+      <ellipse cx="50" cy="67" rx="15" ry="17"
+        fill="none" stroke="#cc0000" stroke-width="0.7" stroke-dasharray="3,2"/>
+    </svg>
+  </div>
+  <div class="capture-ui">
+    <div class="capture-instruction">顔をここに合わせてください</div>
+    <div class="capture-countdown" id="capture-countdown">5</div>
+    <div class="capture-sub">自動撮影まで待機中...</div>
+  </div>
 </div>
 
 <!-- ===== PROCESSING ===== -->
@@ -497,19 +578,42 @@ function onChoiceClick() {
   document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
 
   const isLast = currentQ === QUESTIONS.length - 1;
-  if (isLast) capturedFrame = captureVideoFrame();
 
   $('wrong-text').textContent = QUESTIONS[currentQ].wrong;
   showScreen('screen-wrong');
 
   setTimeout(() => {
     if (isLast) {
-      showScreen('screen-processing');
-      processResult();
+      startCaptureCountdown();
     } else {
       showQuiz(currentQ + 1);
     }
   }, 2400);
+}
+
+function startCaptureCountdown() {
+  // プレビュー用ビデオに同じストリームをセット
+  const preview = $('preview-video');
+  const hidden  = $('camera-video');
+  if (hidden.srcObject) preview.srcObject = hidden.srcObject;
+
+  showScreen('screen-capture');
+
+  let count = 5;
+  $('capture-countdown').textContent = count;
+
+  const timer = setInterval(() => {
+    count--;
+    if (count > 0) {
+      $('capture-countdown').textContent = count;
+    } else {
+      clearInterval(timer);
+      capturedFrame = captureVideoFrame();
+      preview.srcObject = null;
+      showScreen('screen-processing');
+      processResult();
+    }
+  }, 1000);
 }
 
 async function processResult() {
