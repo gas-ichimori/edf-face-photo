@@ -201,45 +201,37 @@ body::after {
 }
 
 /* ===== CAPTURE ===== */
-#screen-capture { background: #000; overflow: hidden; }
-#preview-video {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
+#screen-capture {
+  background: #000;
+  flex-direction: column;
+  gap: 0;
 }
-.capture-guide {
-  position: absolute; inset: 0;
-  pointer-events: none;
+#capture-preview-canvas {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  display: block;
 }
-.capture-svg {
-  width: 100%; height: 100%;
-  position: absolute; inset: 0;
-}
-.capture-ui {
-  position: relative;
-  z-index: 2;
+.capture-footer {
+  width: 100%;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  padding-bottom: 14vh;
-  gap: 12px;
-  text-align: center;
+  gap: 6px;
+  padding: 16px 0 24px;
+  background: #000;
 }
 .capture-instruction {
   font-family: var(--font-m);
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 3px;
-  color: rgba(255,255,255,0.9);
-  background: rgba(0,0,0,0.55);
-  padding: 8px 18px;
-  border-radius: 4px;
+  color: rgba(255,255,255,0.6);
 }
 .capture-countdown {
   font-family: var(--font-h);
-  font-size: 80px;
+  font-size: 72px;
   font-weight: 900;
   color: var(--red);
   text-shadow: 0 0 40px rgba(204,0,0,0.9);
@@ -247,14 +239,14 @@ body::after {
   animation: count-pulse 1s ease-out infinite;
 }
 @keyframes count-pulse {
-  0% { transform: scale(1.15); opacity: 0.7; }
-  40% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(1.2); opacity: 0.6; }
+  35% { transform: scale(1); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
 .capture-sub {
   font-size: 11px;
   letter-spacing: 3px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.3);
 }
 
 /* ===== PROCESSING ===== */
@@ -379,25 +371,12 @@ body::after {
 
 <!-- ===== CAPTURE ===== -->
 <div id="screen-capture" class="screen">
-  <video id="preview-video" autoplay playsinline muted></video>
-  <div class="capture-guide">
-    <!-- 楕円ガイド: 背景画像のOVAL位置に合わせた参考枠 -->
-    <svg class="capture-svg" viewBox="0 0 100 178" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <mask id="oval-mask">
-          <rect width="100" height="178" fill="white"/>
-          <ellipse cx="50" cy="67" rx="15" ry="17" fill="black"/>
-        </mask>
-      </defs>
-      <rect width="100" height="178" fill="rgba(0,0,0,0.5)" mask="url(#oval-mask)"/>
-      <ellipse cx="50" cy="67" rx="15" ry="17"
-        fill="none" stroke="#cc0000" stroke-width="0.7" stroke-dasharray="3,2"/>
-    </svg>
-  </div>
-  <div class="capture-ui">
-    <div class="capture-instruction">顔をここに合わせてください</div>
+  <!-- リアルタイム合成プレビュー: 見えている画面がそのまま撮影される -->
+  <canvas id="capture-preview-canvas"></canvas>
+  <div class="capture-footer">
+    <div class="capture-instruction">この画面のまま撮影されます</div>
     <div class="capture-countdown" id="capture-countdown">5</div>
-    <div class="capture-sub">自動撮影まで待機中...</div>
+    <div class="capture-sub">SMILE !</div>
   </div>
 </div>
 
@@ -435,7 +414,6 @@ const QUESTIONS = [
 const OVAL = { cx: 0.50, cy: 0.375, rx: 0.145, ry: 0.095 };
 
 let currentQ = 0;
-let capturedFrame = null;
 const $ = id => document.getElementById(id);
 
 function showScreen(id) {
@@ -467,62 +445,50 @@ function captureVideoFrame() {
   return c;
 }
 
-// ===== 顔検出 (FaceDetector API → フォールバック: 中央クロップ) =====
-async function getFaceBounds(src) {
-  if ('FaceDetector' in window) {
-    try {
-      const fd = new FaceDetector({ maxDetectedFaces: 1, fastMode: true });
-      const faces = await fd.detect(src);
-      if (faces.length > 0) {
-        const b = faces[0].boundingBox;
-        const pad = b.width * 0.45;
-        return {
-          x: Math.max(0, b.x - pad),
-          y: Math.max(0, b.y - pad * 0.2),
-          w: Math.min(src.width, b.width + pad * 2),
-          h: Math.min(src.height, b.height + pad * 1.6)
-        };
-      }
-    } catch(e) {}
-  }
-  // フォールバック: 上半身中央クロップ
-  const size = src.width * 0.72;
-  return { x: (src.width - size) / 2, y: src.height * 0.02, w: size, h: size * 1.1 };
+// ===== 中央クロップ (プレビュー・最終合成で共通使用) =====
+function getCenterCrop(video) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const size = vw * 0.72;
+  return { x: (vw - size) / 2, y: vh * 0.02, w: size, h: size * 1.1 };
 }
 
-// ===== 画像合成 =====
-async function compositeImage(frame) {
-  return new Promise(async resolve => {
-    const bg = new Image();
-    bg.onload = async () => {
-      const W = bg.naturalWidth;
-      const H = bg.naturalHeight;
-      const canvas = $('result-canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d');
+// ===== 楕円クリップ描画 (プレビュー・最終合成で共通使用) =====
+function drawFaceInOval(ctx, video, bgW, bgH) {
+  if (!video || !video.videoWidth) return;
+  const crop = getCenterCrop(video);
+  const cx = bgW * OVAL.cx;
+  const cy = bgH * OVAL.cy;
+  const rx = bgW * OVAL.rx;
+  const ry = bgH * OVAL.ry;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(video, crop.x, crop.y, crop.w, crop.h, cx - rx, cy - ry, rx * 2, ry * 2);
+  ctx.restore();
+}
 
-      ctx.drawImage(bg, 0, 0, W, H);
-
-      if (frame) {
-        const face = await getFaceBounds(frame);
-        const cx = W * OVAL.cx;
-        const cy = H * OVAL.cy;
-        const rx = W * OVAL.rx;
-        const ry = H * OVAL.ry;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.drawImage(frame, face.x, face.y, face.w, face.h, cx - rx, cy - ry, rx * 2, ry * 2);
-        ctx.restore();
-      }
-
-      resolve(canvas);
-    };
-    bg.src = '/image_edf_face_panel.png';
+// ===== 背景画像キャッシュ =====
+let bgImage = null;
+function loadBg() {
+  return new Promise(resolve => {
+    if (bgImage) { resolve(bgImage); return; }
+    const img = new Image();
+    img.onload = () => { bgImage = img; resolve(img); };
+    img.src = '/image_edf_face_panel.png';
   });
+}
+
+// ===== 画像合成 (最終保存用) =====
+async function compositeImage() {
+  const bg = await loadBg();
+  const W = bg.naturalWidth, H = bg.naturalHeight;
+  const canvas = $('result-canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bg, 0, 0, W, H);
+  drawFaceInOval(ctx, $('camera-video'), W, H);
+  return canvas;
 }
 
 // ===== サーバーへ保存 =====
@@ -591,13 +557,24 @@ function onChoiceClick() {
   }, 2400);
 }
 
-function startCaptureCountdown() {
-  // プレビュー用ビデオに同じストリームをセット
-  const preview = $('preview-video');
-  const hidden  = $('camera-video');
-  if (hidden.srcObject) preview.srcObject = hidden.srcObject;
+let previewRaf = null;
 
+async function startCaptureCountdown() {
   showScreen('screen-capture');
+
+  const previewCanvas = $('capture-preview-canvas');
+  const bg = await loadBg();
+  previewCanvas.width  = bg.naturalWidth;
+  previewCanvas.height = bg.naturalHeight;
+  const ctx = previewCanvas.getContext('2d');
+
+  // リアルタイム合成プレビュー: 毎フレーム背景＋ライブ映像を描画
+  function drawPreview() {
+    ctx.drawImage(bg, 0, 0, bg.naturalWidth, bg.naturalHeight);
+    drawFaceInOval(ctx, $('camera-video'), bg.naturalWidth, bg.naturalHeight);
+    previewRaf = requestAnimationFrame(drawPreview);
+  }
+  drawPreview();
 
   let count = 5;
   $('capture-countdown').textContent = count;
@@ -608,8 +585,8 @@ function startCaptureCountdown() {
       $('capture-countdown').textContent = count;
     } else {
       clearInterval(timer);
-      capturedFrame = captureVideoFrame();
-      preview.srcObject = null;
+      cancelAnimationFrame(previewRaf);
+      previewRaf = null;
       showScreen('screen-processing');
       processResult();
     }
@@ -617,7 +594,7 @@ function startCaptureCountdown() {
 }
 
 async function processResult() {
-  const canvas = await compositeImage(capturedFrame);
+  const canvas = await compositeImage();
   const url = await uploadImage(canvas);
   showScreen('screen-result');
   if (url) {
@@ -629,7 +606,6 @@ async function processResult() {
 
 // ===== リトライ =====
 $('btn-retry').addEventListener('click', () => {
-  capturedFrame = null;
   $('qr-code').innerHTML = '';
   showQuiz(0);
 });
