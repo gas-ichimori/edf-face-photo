@@ -720,7 +720,7 @@ async function showFrontAnt(overlay, W, H, ants) {
 }
 
 /* ===== FACE PANEL ===== */
-const OVAL = { cx: 0.50, cy: 0.40, rx: 0.085, ry: 0.072 };
+const OVAL = { cx: 0.50, cy: 0.40, rx: 0.085, ry: 0.070, rot: 2 }; // rot=傾き(度), 正で右
 let bgImage = null;
 function loadBg() {
   return new Promise(resolve => {
@@ -749,11 +749,15 @@ function drawFaceInOval(ctx, video, bgW, bgH) {
   const crop = getCenterCrop(video);
   const cx = bgW * OVAL.cx, cy = bgH * OVAL.cy;
   const rx = bgW * OVAL.rx, ry = bgH * OVAL.ry;
+  const rot = ((OVAL.rot || 0) * Math.PI) / 180;
   ctx.save();
+  // 楕円中心を基準に回転
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
   ctx.beginPath();
-  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
   ctx.clip();
-  ctx.drawImage(video, crop.x, crop.y, crop.w, crop.h, cx - rx, cy - ry, rx * 2, ry * 2);
+  ctx.drawImage(video, crop.x, crop.y, crop.w, crop.h, -rx, -ry, rx * 2, ry * 2);
   ctx.restore();
 }
 
