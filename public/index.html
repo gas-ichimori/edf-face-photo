@@ -112,6 +112,8 @@ html, body {
   100% { transform: scale(1); }
 }
 #start-btn.launching { animation: btn-bounce 0.45s ease forwards; pointer-events: none; }
+#start-btn.loading { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+#start-hint .hint-ja.loading { color: #888; animation: none; }
 #start-copyright {
   position: absolute; bottom: 10px; left: 0; right: 0;
   text-align: center; font-size: 8px; letter-spacing: 2px; color: #bbb;
@@ -187,7 +189,7 @@ html, body {
   width: 100%; max-width: 360px;
 }
 .frame-cell {
-  aspect-ratio: 3/4;
+  aspect-ratio: 355/567;
   border-radius: 6px;
   cursor: pointer;
   position: relative;
@@ -341,7 +343,7 @@ html, body {
     <span class="en">COMMEMORATIVE PHOTO</span>
   </div>
   <div id="start-hint">
-    <span class="hint-ja">▼ ボタンを押せ ▼</span>
+    <span class="hint-ja" id="start-hint-ja">▼ ボタンを押せ ▼</span>
   </div>
   <button id="start-btn" aria-label="撮影開始">
     <img src="/mark.png" alt="START">
@@ -529,7 +531,7 @@ function loadFrameImage(id) {
 }
 
 /* ===== BUILD FRAME GRID ===== */
-async function buildFrameGrid() {
+async function buildFrameGrid(disabled = false) {
   const grid = $('frames-grid');
   grid.innerHTML = '';
   for (const frame of FRAMES) {
@@ -540,7 +542,7 @@ async function buildFrameGrid() {
     const pngImg = await loadFrameImage(frame.id);
     if (pngImg) {
       // PNG画像あり → そのまま表示
-      pngImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:6px;';
+      pngImg.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;border-radius:6px;';
       cell.appendChild(pngImg);
     } else {
       // PNG画像なし → Canvas描画フォールバック
@@ -550,8 +552,13 @@ async function buildFrameGrid() {
       cell.appendChild(cvs);
     }
 
-    cell.addEventListener('click', () => selectFrame(frame.id));
-    cell.addEventListener('touchend', e => { e.preventDefault(); selectFrame(frame.id); }, { passive: false });
+    if (disabled) {
+      // 不正解時: 選択不可
+      cell.style.pointerEvents = 'none';
+    } else {
+      cell.addEventListener('click', () => selectFrame(frame.id));
+      cell.addEventListener('touchend', e => { e.preventDefault(); selectFrame(frame.id); }, { passive: false });
+    }
     grid.appendChild(cell);
   }
 }
@@ -720,7 +727,7 @@ async function showFrontAnt(overlay, W, H, ants) {
 }
 
 /* ===== FACE PANEL ===== */
-const OVAL = { cx: 0.48, cy: 0.40, rx: 0.085, ry: 0.055, rot: 10 }; // rot=傾き(度), 正で右
+const OVAL = { cx: 0.48, cy: 0.40, rx: 0.085, ry: 0.060, rot: 10 }; // rot=傾き(度), 正で右
 let bgImage = null;
 function loadBg() {
   return new Promise(resolve => {
@@ -883,20 +890,18 @@ function showJudge(correct) {
   }
   showScreen('screen-judge');
 
-  setTimeout(() => {
+  setTimeout(async () => {
     selectedFrame = 0;
-    buildFrameGrid();
     showScreen('screen-frames');
 
     if (correct) {
       // 正解: フレームを選択できる（通常通り）
       $('frames-subtitle').textContent = 'フレームを選んでください';
+      await buildFrameGrid(false);
     } else {
       // 不正解: フレーム選択不可。眺めているうちに蟻が押し寄せる
       $('frames-subtitle').textContent = '…フレームを選ぶ間もなく…';
-      document.querySelectorAll('.frame-cell').forEach(c => {
-        c.style.pointerEvents = 'none';
-      });
+      await buildFrameGrid(true);
       setTimeout(() => startAntInvasion(), 1800);
     }
   }, 2400);
@@ -913,12 +918,50 @@ $('btn-retry').addEventListener('click', () => {
 $('start-btn').addEventListener('click', onStart);
 $('start-btn').addEventListener('touchend', e => { e.preventDefault(); onStart(); }, { passive: false });
 
+let assetsReady = false;
 async function onStart() {
+  if (!assetsReady) return;
   $('start-btn').classList.add('launching');
   setTimeout(() => $('start-btn').classList.remove('launching'), 450);
   await startCamera();
   setupQuiz();
 }
+
+/* ===== PRELOAD ALL ASSETS ===== */
+function preloadImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = img.onerror = () => resolve();
+    img.src = src;
+  });
+}
+
+async function preloadAssets() {
+  const btn = $('start-btn');
+  const hint = $('start-hint-ja');
+  btn.classList.add('loading');
+  hint.classList.add('loading');
+  hint.textContent = '読み込み中...';
+
+  const assets = [
+    '/logo1.png', '/logo2.png', '/logo3.png', '/mark.png', '/top_bg.png',
+    '/image_edf_face_panel.png',
+    '/frame_00.png','/frame_01.png','/frame_02.png','/frame_03.png','/frame_04.png',
+    '/frame_05.png','/frame_06.png','/frame_07.png','/frame_08.png',
+    '/ant1.png','/ant2.png','/ant3.png','/ant4.png',
+    '/ant_front1.png','/ant_front2.png','/ant_front3.png','/ant_front4.png','/ant_front.png',
+  ];
+  await Promise.all(assets.map(preloadImage));
+
+  // 顔はめパネルもキャッシュ
+  await loadBg();
+
+  assetsReady = true;
+  btn.classList.remove('loading');
+  hint.classList.remove('loading');
+  hint.textContent = '▼ ボタンを押せ ▼';
+}
+preloadAssets();
 
 /* ===== PING ===== */
 setInterval(() => fetch('/ping').catch(() => {}), 5 * 60 * 1000);
