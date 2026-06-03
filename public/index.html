@@ -3,472 +3,724 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>EDF CHALLENGE</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>EDF 記念撮影</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=M+PLUS+1p:wght@800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
-:root {
-  --red: #cc0000;
-  --green: #88ff55;
-  --font-h: 'Orbitron', sans-serif;
-  --font-m: 'Share Tech Mono', monospace;
-}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   width: 100%; height: 100%;
-  background: #080808;
-  color: #ddd;
-  font-family: var(--font-m);
+  background: #fff;
+  color: #111;
+  font-family: 'M PLUS 1p', sans-serif;
+  font-weight: 800;
   overflow: hidden;
   touch-action: manipulation;
-}
-body::after {
-  content: '';
-  position: fixed; inset: 0;
-  background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
-  pointer-events: none;
-  z-index: 9999;
+  user-select: none; -webkit-user-select: none;
 }
 .screen {
   position: fixed; inset: 0;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
 }
 .screen.active { display: flex; }
 
-/* ===== START ===== */
+/* ===== HIDDEN VIDEO ===== */
+#camera-video { position: fixed; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+
+/* ===== ① START ===== */
 #screen-start {
-  background: radial-gradient(ellipse at center, #1a0000 0%, #050505 70%);
-  gap: 28px;
-  padding: 48px 28px;
-  text-align: center;
+  background: #fff;
+  gap: 22px; text-align: center; padding: 40px 24px;
 }
-.start-edf-logo {
-  font-family: var(--font-h);
-  font-size: 72px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: 10px;
-  border: 3px solid var(--red);
-  padding: 6px 28px;
-  background: rgba(204,0,0,0.1);
-  text-shadow: 0 0 40px rgba(255,80,80,0.4);
+#start-bg-deco {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
 }
-.start-title {
-  font-family: var(--font-h);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  color: var(--red);
-  line-height: 1.6;
-  text-shadow: 0 0 20px rgba(204,0,0,0.6);
+#start-bg-deco::before, #start-bg-deco::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.07;
 }
-.start-subtitle {
-  font-size: 13px;
-  letter-spacing: 2px;
-  color: #777;
-  line-height: 1.9;
-  max-width: 300px;
+#start-bg-deco::before {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, #cc0000, transparent);
+  top: -200px; right: -200px;
 }
-.btn-challenge {
-  font-family: var(--font-h);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 5px;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  padding: 20px 48px;
-  cursor: pointer;
-  border-radius: 4px;
-  box-shadow: 0 0 32px rgba(204,0,0,0.6);
-  transition: transform 0.1s, box-shadow 0.1s;
+#start-bg-deco::after {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, #003388, transparent);
+  bottom: -150px; left: -150px;
 }
-.btn-challenge:active { transform: scale(0.95); box-shadow: 0 0 12px rgba(204,0,0,0.4); }
-.start-footer {
-  font-size: 10px;
-  color: #444;
-  letter-spacing: 2px;
+#screen-start > * { position: relative; z-index: 1; }
+
+#logo-switcher {
+  position: relative; width: 180px; height: 72px;
+}
+#logo-switcher img {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; object-fit: contain;
+  opacity: 0; transition: opacity 0.6s ease;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+#logo-switcher img.active { opacity: 1; }
+
+#start-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px; font-weight: 900;
+  letter-spacing: 4px; color: #cc0000;
+  text-shadow: 0 2px 8px rgba(204,0,0,0.2);
+  line-height: 1.3;
+}
+#start-title .en {
+  display: block; margin-top: 6px;
+  font-size: 11px; letter-spacing: 4px; color: #999;
+}
+#start-subtitle {
+  font-size: 20px; letter-spacing: 6px; color: #111;
+  border-top: 2px solid #cc0000; border-bottom: 2px solid #cc0000;
+  padding: 10px 20px;
+}
+#start-subtitle .en {
+  display: block; font-size: 11px; letter-spacing: 3px; color: #888; margin-top: 4px;
+}
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+#start-hint, #start-hint-en { text-align: center; line-height: 2; }
+#start-hint .hint-ja {
+  display: block; font-size: 14px; letter-spacing: 3px; color: #cc0000;
+  animation: blink 1.1s ease-in-out infinite;
+}
+#start-hint-en .hint-en {
+  display: block; font-family: 'Orbitron', sans-serif;
+  font-size: 9px; letter-spacing: 3px; color: #cc6666;
+  animation: blink 1.1s ease-in-out infinite; animation-delay: 0.05s;
+}
+#start-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  filter: drop-shadow(0 2px 12px rgba(204,0,0,0.4));
+  transition: transform 0.15s;
+}
+#start-btn img { width: 100px; height: 100px; object-fit: contain; }
+@keyframes btn-bounce {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(0.84); }
+  60%  { transform: scale(1.14); }
+  80%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+#start-btn.launching { animation: btn-bounce 0.45s ease forwards; pointer-events: none; }
+#start-copyright {
+  position: absolute; bottom: 10px; left: 0; right: 0;
+  text-align: center; font-size: 8px; letter-spacing: 2px; color: #bbb;
 }
 
 /* ===== QUIZ ===== */
-#screen-quiz { background: #080808; justify-content: flex-start; }
-.quiz-header {
-  width: 100%;
-  padding: 22px 24px 18px;
-  background: rgba(204,0,0,0.08);
-  border-bottom: 1px solid rgba(204,0,0,0.3);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
+#screen-quiz {
+  background: #fff;
+  gap: 20px; padding: 40px 28px; text-align: center;
 }
-.quiz-header-label {
-  font-family: var(--font-h);
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: var(--red);
+#quiz-lead {
+  font-size: 15px; letter-spacing: 2px; color: #cc0000;
 }
-.quiz-header-progress {
-  font-family: var(--font-m);
-  font-size: 13px;
-  color: #666;
+#quiz-question {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 30px; font-weight: 900; letter-spacing: 4px; color: #111;
 }
-.quiz-body {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 36px 24px;
-  gap: 28px;
+#quiz-choices {
+  display: flex; flex-direction: column; gap: 14px;
+  width: 100%; max-width: 360px; margin-top: 8px;
 }
-.quiz-q-num {
-  font-family: var(--font-h);
-  font-size: 11px;
-  letter-spacing: 5px;
-  color: #444;
-  align-self: flex-start;
+.quiz-choice {
+  font-family: 'M PLUS 1p', sans-serif; font-weight: 800;
+  font-size: 17px; letter-spacing: 1px;
+  background: #f5f5f5; border: 2px solid #cc0000; color: #111;
+  padding: 16px; border-radius: 6px; cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
 }
-.quiz-q-text {
-  font-family: var(--font-m);
-  font-size: 18px;
-  letter-spacing: 2px;
-  color: #eee;
-  line-height: 1.9;
-  text-align: center;
-  white-space: pre-line;
-  width: 100%;
+.quiz-choice:active { transform: scale(0.97); background: #ffecec; }
+.quiz-choice:disabled { opacity: 0.5; pointer-events: none; }
+
+/* ===== JUDGE (correct/wrong) ===== */
+#screen-judge {
+  background: url('/top_bg.png') center center / cover no-repeat #000;
+  gap: 20px; text-align: center;
 }
-.quiz-choices {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+#screen-judge::before {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 0;
 }
-.choice-btn {
-  width: 100%;
-  font-family: var(--font-m);
-  font-size: 15px;
-  letter-spacing: 2px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.13);
-  color: #bbb;
-  padding: 18px 20px;
-  text-align: left;
+#screen-judge > * { position: relative; z-index: 1; }
+#judge-mark {
+  font-size: 110px; line-height: 1;
+}
+#judge-mark.correct { color: #ffcc00; text-shadow: 0 0 40px rgba(255,204,0,0.8); }
+#judge-mark.wrong   { color: #cc0000; text-shadow: 0 0 40px rgba(204,0,0,0.8); }
+#judge-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px; font-weight: 900; letter-spacing: 4px; color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+}
+#judge-sub {
+  font-size: 15px; letter-spacing: 2px; color: #fff; line-height: 1.9;
+  white-space: pre-line; padding: 0 24px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+}
+
+/* ===== ② FRAME SELECT ===== */
+#screen-frames {
+  background: #f5f5f5;
+  flex-direction: column; gap: 16px; padding: 24px 16px;
+}
+#screen-frames > * { position: relative; z-index: 1; }
+#frames-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px; letter-spacing: 5px; color: #cc0000; text-align: center;
+}
+#frames-subtitle { font-size: 11px; letter-spacing: 2px; color: #888; text-align: center; }
+#frames-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%; max-width: 360px;
+}
+.frame-cell {
+  aspect-ratio: 3/4;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 3px;
-  transition: background 0.1s, border-color 0.1s;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.12s, box-shadow 0.12s;
+  display: flex; align-items: center; justify-content: center;
 }
-.choice-btn:active {
-  background: rgba(204,0,0,0.18);
-  border-color: rgba(204,0,0,0.6);
-  color: #fff;
+.frame-cell:active { transform: scale(0.93); }
+.frame-cell.selected {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px #cc0000, 0 4px 16px rgba(204,0,0,0.4);
 }
-.choice-btn:disabled { opacity: 0.5; cursor: default; }
+.frame-cell canvas { width: 100%; height: 100%; display: block; }
 
-/* ===== WRONG ===== */
-#screen-wrong {
-  background: rgba(0,0,0,0.97);
-  gap: 28px;
-  padding: 48px 28px;
-  text-align: center;
+/* ===== ③④ ANT ANIMATION ===== */
+#screen-ant {
+  background: transparent;
+  z-index: 50; overflow: hidden;
 }
-.wrong-label {
-  font-family: var(--font-h);
-  font-size: 52px;
-  font-weight: 900;
-  color: var(--red);
-  letter-spacing: 4px;
-  text-shadow: 0 0 40px rgba(204,0,0,0.8);
-  animation: wrong-flash 0.35s ease 4;
+#ant-frame-bg {
+  position: absolute; inset: 0;
+  background: #f5f5f5;
 }
-@keyframes wrong-flash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.1; }
+#ant-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 0.8s ease;
 }
-.wrong-text {
-  font-family: var(--font-m);
-  font-size: 15px;
-  letter-spacing: 2px;
-  color: #ccc;
-  line-height: 1.9;
-  white-space: pre-line;
-  max-width: 320px;
+#ant-overlay.blackout { background: rgba(0,0,0,1); }
+
+.ant-small {
+  position: absolute;
+  font-size: 36px;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes ant-from-left   { 0%{transform:translateX(-120vw) rotate(-30deg);} 100%{transform:translateX(0) rotate(-30deg);} }
+@keyframes ant-from-right  { 0%{transform:translateX(120vw) rotate(150deg);}  100%{transform:translateX(0) rotate(150deg);} }
+@keyframes ant-from-top    { 0%{transform:translateY(-120vh) rotate(60deg);}  100%{transform:translateY(0) rotate(60deg);} }
+@keyframes ant-from-bottom { 0%{transform:translateY(120vh) rotate(-120deg);} 100%{transform:translateY(0) rotate(-120deg);} }
+@keyframes ant-scatter {
+  0%   { transform: translate(0,0) scale(1); }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.8); }
 }
 
-/* ===== CAPTURE ===== */
+#ant-boss {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%) scale(0.3);
+  font-size: 80px;
+  transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 10;
+}
+#ant-boss.rush { transform: translate(-50%, -50%) scale(25); }
+
+/* ===== ⑤ CAPTURE ===== */
 #screen-capture {
   background: #000;
-  flex-direction: column;
-  gap: 0;
+  padding: 0; gap: 0;
+}
+#capture-wrap {
+  position: relative; width: 100%; flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
 }
 #capture-preview-canvas {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  object-fit: contain;
-  display: block;
+  width: 100%; height: 100%;
+  object-fit: contain; display: block;
 }
-.capture-footer {
-  width: 100%;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 16px 0 24px;
-  background: #000;
+#capture-ui {
+  position: absolute; bottom: 20px; left: 0; right: 0;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px; pointer-events: none;
 }
-.capture-instruction {
-  font-family: var(--font-m);
-  font-size: 13px;
-  letter-spacing: 3px;
-  color: rgba(255,255,255,0.6);
+#capture-message {
+  font-size: 17px; letter-spacing: 3px; color: #fff;
+  text-shadow: 0 0 10px rgba(0,0,0,1);
+  text-align: center; background: rgba(0,0,0,0.6);
+  padding: 8px 18px; border-radius: 4px;
 }
-.capture-countdown {
-  font-family: var(--font-h);
-  font-size: 72px;
-  font-weight: 900;
-  color: var(--red);
-  text-shadow: 0 0 40px rgba(204,0,0,0.9);
+#capture-countdown {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 72px; font-weight: 900; color: #fff;
+  text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 6px rgba(0,0,0,1);
   line-height: 1;
-  animation: count-pulse 1s ease-out infinite;
 }
-@keyframes count-pulse {
-  0% { transform: scale(1.2); opacity: 0.6; }
-  35% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.capture-sub {
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: rgba(255,255,255,0.3);
+#capture-countdown.flash { animation: count-flash 0.3s ease; }
+@keyframes count-flash {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.4); color: #ff4444; }
 }
 
-/* ===== PROCESSING ===== */
-#screen-processing { background: #000; gap: 20px; text-align: center; }
-.processing-label {
-  font-family: var(--font-h);
-  font-size: 18px;
-  letter-spacing: 6px;
-  color: var(--red);
-  animation: blink 0.7s ease infinite;
+/* ===== ⑥ PROCESSING ===== */
+#screen-processing {
+  background: #000; gap: 24px; text-align: center;
 }
-.processing-sub {
-  font-size: 12px;
-  letter-spacing: 3px;
-  color: #444;
+#processing-icon { font-size: 52px; animation: spin 1.2s linear infinite; }
+@keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+#processing-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px; letter-spacing: 4px; color: #888;
 }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
 
-/* ===== RESULT ===== */
+/* ===== ⑦ RESULT ===== */
 #screen-result {
-  background: #060606;
-  justify-content: flex-start;
+  background: #000; padding: 16px; gap: 14px; justify-content: flex-start;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
-.result-wrap {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 24px 20px 48px;
-}
-.result-alert {
-  font-family: var(--font-h);
-  font-size: 12px;
-  letter-spacing: 3px;
-  color: var(--red);
-  text-align: center;
-  line-height: 1.7;
+#result-alert {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px; letter-spacing: 3px; color: #cc0000; text-align: center;
 }
 #result-canvas {
-  width: 100%;
-  max-width: 340px;
-  border: 2px solid rgba(204,0,0,0.5);
-  box-shadow: 0 0 32px rgba(204,0,0,0.25);
+  width: 100%; max-width: 340px;
   display: block;
 }
-.result-qr-box {
-  width: 100%;
-  max-width: 340px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+#result-qr-box {
+  background: rgba(255,255,255,0.05); border: 1px solid #333;
+  border-radius: 8px; padding: 14px; text-align: center;
+  width: 100%; max-width: 340px;
 }
-.result-qr-label {
-  font-size: 12px;
-  letter-spacing: 3px;
-  color: #888;
-  text-align: center;
+#result-qr-label { font-size: 11px; letter-spacing: 2px; color: #888; margin-bottom: 10px; }
+#qr-code { display: flex; justify-content: center; }
+#result-qr-note { font-size: 10px; letter-spacing: 1px; color: #555; margin-top: 8px; line-height: 1.6; }
+#btn-retry {
+  font-family: 'M PLUS 1p', sans-serif; font-weight: 800;
+  font-size: 14px; letter-spacing: 3px;
+  background: rgba(204,0,0,0.15); border: 2px solid rgba(204,0,0,0.7); color: #cc4444;
+  padding: 14px 32px; border-radius: 4px; cursor: pointer; width: 100%; max-width: 340px;
 }
-#qr-code { background: #fff; padding: 8px; border-radius: 4px; }
-.result-qr-note {
-  font-size: 11px;
-  color: #555;
-  letter-spacing: 1px;
-  text-align: center;
-  line-height: 1.7;
-}
-.btn-retry {
-  font-family: var(--font-h);
-  font-size: 13px;
-  letter-spacing: 4px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #888;
-  padding: 16px 36px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.1s;
-}
-.btn-retry:active { background: rgba(255,255,255,0.05); }
 </style>
 </head>
 <body>
 
-<video id="camera-video" autoplay playsinline muted
-  style="position:fixed;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;"></video>
+<video id="camera-video" autoplay playsinline muted></video>
 
-<!-- ===== START ===== -->
+<!-- ① START -->
 <div id="screen-start" class="screen active">
-  <div class="start-edf-logo">EDF</div>
-  <div class="start-title">隊員適性<br>チャレンジ</div>
-  <div class="start-subtitle">地球防衛軍への入隊資格を問う<br>3問のクイズに挑め<br>果たして合格できるか——</div>
-  <button class="btn-challenge" id="btn-start">▶ 挑戦開始</button>
-  <div class="start-footer">TGS2026 / D3PUBLISHER / EARTH DEFENSE FORCE</div>
+  <div id="start-bg-deco"></div>
+  <div id="logo-switcher">
+    <img src="/logo3.png" alt="EDF 5" class="active">
+    <img src="/logo2.png" alt="EDF 6">
+    <img src="/logo1.png" alt="EDF 6.1">
+  </div>
+  <div id="start-title">
+    ようこそ！EDF！
+    <span class="en">WELCOME TO THE EDF!</span>
+  </div>
+  <div id="start-subtitle">
+    記念撮影
+    <span class="en">COMMEMORATIVE PHOTO</span>
+  </div>
+  <div id="start-hint">
+    <span class="hint-ja">▼ ボタンを押せ ▼</span>
+  </div>
+  <button id="start-btn" aria-label="撮影開始">
+    <img src="/mark.png" alt="START">
+  </button>
+  <div id="start-hint-en">
+    <span class="hint-en">▲ PRESS THE BUTTON ▲</span>
+  </div>
+  <p id="start-copyright">© D3PUBLISHER INC. All rights reserved.</p>
 </div>
 
-<!-- ===== QUIZ ===== -->
+<!-- QUIZ -->
 <div id="screen-quiz" class="screen">
-  <div class="quiz-header">
-    <div class="quiz-header-label">APTITUDE TEST</div>
-    <div class="quiz-header-progress" id="quiz-progress">1 / 3</div>
-  </div>
-  <div class="quiz-body">
-    <div class="quiz-q-num" id="quiz-q-num">Q.01</div>
-    <div class="quiz-q-text" id="quiz-q-text"></div>
-    <div class="quiz-choices" id="quiz-choices"></div>
+  <div id="quiz-lead">記念撮影の前に問題です！</div>
+  <div id="quiz-question">EDFの意味は？</div>
+  <div id="quiz-choices">
+    <button class="quiz-choice" data-correct="0">1. Earth Doesn't Fall</button>
+    <button class="quiz-choice" data-correct="0">2. Every Day Fighters</button>
+    <button class="quiz-choice" data-correct="1">3. Earth Defense Force</button>
   </div>
 </div>
 
-<!-- ===== WRONG ===== -->
-<div id="screen-wrong" class="screen">
-  <div class="wrong-label">不正解！</div>
-  <div class="wrong-text" id="wrong-text"></div>
+<!-- JUDGE -->
+<div id="screen-judge" class="screen">
+  <div id="judge-mark"></div>
+  <div id="judge-text"></div>
+  <div id="judge-sub"></div>
 </div>
 
-<!-- ===== CAPTURE ===== -->
+<!-- ② FRAME SELECT -->
+<div id="screen-frames" class="screen">
+  <div id="frames-title">CHOOSE YOUR FRAME</div>
+  <div id="frames-subtitle">フレームを選んでください</div>
+  <div id="frames-grid"></div>
+</div>
+
+<!-- ③④ ANT ANIMATION -->
+<div id="screen-ant" class="screen">
+  <div id="ant-frame-bg"></div>
+  <div id="ant-overlay"></div>
+  <div id="ant-boss">🐜</div>
+</div>
+
+<!-- ⑤ CAPTURE -->
 <div id="screen-capture" class="screen">
-  <!-- リアルタイム合成プレビュー: 見えている画面がそのまま撮影される -->
-  <canvas id="capture-preview-canvas"></canvas>
-  <div class="capture-footer">
-    <div class="capture-instruction">この画面のまま撮影されます</div>
-    <div class="capture-countdown" id="capture-countdown">5</div>
-    <div class="capture-sub">SMILE !</div>
-  </div>
-</div>
-
-<!-- ===== PROCESSING ===== -->
-<div id="screen-processing" class="screen">
-  <div class="processing-label">CAPTURING...</div>
-  <div class="processing-sub">巨大生物が接近中</div>
-</div>
-
-<!-- ===== RESULT ===== -->
-<div id="screen-result" class="screen">
-  <div class="result-wrap">
-    <div class="result-alert">⚠ あなたは巨大生物に捕まりました ⚠</div>
-    <canvas id="result-canvas"></canvas>
-    <div class="result-qr-box">
-      <div class="result-qr-label">QRコードをスキャンして画像を保存</div>
-      <div id="qr-code"></div>
-      <div class="result-qr-note">スマートフォンのカメラで読み取ってください<br>画像は本日限り有効です</div>
+  <div id="capture-wrap">
+    <canvas id="capture-preview-canvas"></canvas>
+    <div id="capture-ui">
+      <div id="capture-message">写真を撮るよ！いい顔してね！</div>
+      <div id="capture-countdown">3</div>
     </div>
-    <button class="btn-retry" id="btn-retry">▶ もう一度挑戦する</button>
   </div>
+</div>
+
+<!-- ⑥ PROCESSING -->
+<div id="screen-processing" class="screen">
+  <div id="processing-icon">⚙</div>
+  <div id="processing-text">PROCESSING...</div>
+</div>
+
+<!-- ⑦ RESULT -->
+<div id="screen-result" class="screen">
+  <div id="result-alert">⚠ あなたは巨大生物に捕まりました ⚠</div>
+  <canvas id="result-canvas"></canvas>
+  <div id="result-qr-box">
+    <div id="result-qr-label">QRコードをスキャンして画像を保存</div>
+    <div id="qr-code"></div>
+    <div id="result-qr-note">スマートフォンのカメラで読み取ってください<br>画像は本日限り有効です</div>
+  </div>
+  <button id="btn-retry">▶ もう一度挑戦する</button>
 </div>
 
 <script>
-const QUESTIONS = [
-  {
-    q: 'EDF史上\n最強の武器とは何か？',
-    choices: ['ストームチームの特殊ライフル', 'フェンサーの重装甲', 'エアレイダーの航空支援'],
-    wrong: '不正解！\n最強の武器は「魂」だ！EDF！\n\n...あなたは巨大生物に捕まりました。'
-  }
-];
-
-// ===== 顔はめ楕円の位置 (背景画像に対する比率) =====
-// ※ズレる場合はここを調整してください
-const OVAL = { cx: 0.50, cy: 0.375, rx: 0.145, ry: 0.095 };
-
-let currentQ = 0;
+/* ===== UTILS ===== */
 const $ = id => document.getElementById(id);
-
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
 }
 
-// ===== カメラ =====
-async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-    $('camera-video').srcObject = stream;
-    await new Promise(r => { $('camera-video').onloadedmetadata = r; });
-  } catch(e) {
-    console.warn('Camera unavailable:', e);
+/* ===== LOGO SWITCHER ===== */
+(function(){
+  const imgs = document.querySelectorAll('#logo-switcher img');
+  let cur = 0;
+  setInterval(() => {
+    imgs[cur].classList.remove('active');
+    cur = (cur + 1) % imgs.length;
+    imgs[cur].classList.add('active');
+  }, 2000);
+})();
+
+/* ===== FRAME DEFINITIONS ===== */
+// 各フレームの定義: name, border color, accent, style id
+const FRAMES = [
+  { id:0, name:'ゴールド',    border:'#ffd700', bg:'#1a1400', accent:'#ffaa00' },
+  { id:1, name:'迷彩',        border:'#4a7a2a', bg:'#0d1a08', accent:'#88cc44' },
+  { id:2, name:'レッドアラート', border:'#cc0000', bg:'#1a0000', accent:'#ff4444' },
+  { id:3, name:'ブルーHUD',   border:'#0088ff', bg:'#001a3a', accent:'#44bbff' },
+  { id:4, name:'ブラックアント', border:'#333',   bg:'#0a0a0a', accent:'#666' },
+  { id:5, name:'ファイア',    border:'#ff6600', bg:'#1a0800', accent:'#ffaa00' },
+  { id:6, name:'シルバー',    border:'#c0c0c0', bg:'#1a1a1a', accent:'#e8e8e8' },
+  { id:7, name:'タクティカル', border:'#3d8a3d', bg:'#0a140a', accent:'#66aa66' },
+  { id:8, name:'EDF クリーン', border:'#cc0000', bg:'#ffffff', accent:'#003388' },
+];
+
+let selectedFrame = 0;
+
+/* ===== FRAME THUMBNAIL DRAW ===== */
+function drawFrameThumb(canvas, frame) {
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // background
+  ctx.fillStyle = frame.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // inner area (photo preview zone)
+  const pad = W * 0.12;
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(pad, pad, W - pad*2, H - pad*2);
+
+  // border frame
+  ctx.strokeStyle = frame.border;
+  ctx.lineWidth = W * 0.06;
+  ctx.strokeRect(W*0.03, H*0.03, W*0.94, H*0.94);
+
+  // corner accents
+  const cs = W * 0.18;
+  ctx.strokeStyle = frame.accent;
+  ctx.lineWidth = W * 0.04;
+  [[0,0],[W,0],[0,H],[W,H]].forEach(([x,y]) => {
+    const sx = x === 0 ? W*0.03 : W*0.97;
+    const sy = y === 0 ? H*0.03 : H*0.97;
+    const dx = x === 0 ? cs : -cs;
+    const dy = y === 0 ? cs : -cs;
+    ctx.beginPath(); ctx.moveTo(sx+dx, sy); ctx.lineTo(sx, sy); ctx.lineTo(sx, sy+dy);
+    ctx.stroke();
+  });
+
+  // frame name
+  ctx.fillStyle = frame.accent;
+  ctx.font = `bold ${W*0.14}px 'M PLUS 1p', sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText(frame.name, W/2, H - W*0.05);
+}
+
+/* ===== FINAL FRAME OVERLAY DRAW ===== */
+function drawFrameOverlay(ctx, W, H, frame) {
+  const bw = Math.max(W, H) * 0.025;
+  const cw = bw * 2.5;
+
+  // outer border
+  ctx.strokeStyle = frame.border;
+  ctx.lineWidth = bw * 1.6;
+  ctx.strokeRect(bw * 0.8, bw * 0.8, W - bw*1.6, H - bw*1.6);
+
+  // inner border
+  ctx.strokeStyle = frame.accent;
+  ctx.lineWidth = bw * 0.6;
+  ctx.strokeRect(bw * 2, bw * 2, W - bw*4, H - bw*4);
+
+  // corner ornaments
+  ctx.strokeStyle = frame.accent;
+  ctx.lineWidth = bw * 1.2;
+  [[0,0],[W,0],[0,H],[W,H]].forEach(([x,y]) => {
+    const sx = x === 0 ? bw*0.8 : W - bw*0.8;
+    const sy = y === 0 ? bw*0.8 : H - bw*0.8;
+    const dx = x === 0 ? cw : -cw;
+    const dy = y === 0 ? cw : -cw;
+    ctx.beginPath(); ctx.moveTo(sx+dx, sy); ctx.lineTo(sx, sy); ctx.lineTo(sx, sy+dy);
+    ctx.stroke();
+  });
+}
+
+/* ===== PNG FRAME LOADER ===== */
+// frame_XX.png があればそちらを使い、なければCanvas描画にフォールバック
+function loadFrameImage(id) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const path = `/frame_${String(id).padStart(2,'0')}.png`;
+    img.onload  = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = path;
+  });
+}
+
+/* ===== BUILD FRAME GRID ===== */
+async function buildFrameGrid() {
+  const grid = $('frames-grid');
+  grid.innerHTML = '';
+  for (const frame of FRAMES) {
+    const cell = document.createElement('div');
+    cell.className = 'frame-cell' + (frame.id === selectedFrame ? ' selected' : '');
+    cell.dataset.id = frame.id;
+
+    const pngImg = await loadFrameImage(frame.id);
+    if (pngImg) {
+      // PNG画像あり → そのまま表示
+      pngImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:6px;';
+      cell.appendChild(pngImg);
+    } else {
+      // PNG画像なし → Canvas描画フォールバック
+      const cvs = document.createElement('canvas');
+      cvs.width = 90; cvs.height = 120;
+      drawFrameThumb(cvs, frame);
+      cell.appendChild(cvs);
+    }
+
+    cell.addEventListener('click', () => selectFrame(frame.id));
+    cell.addEventListener('touchend', e => { e.preventDefault(); selectFrame(frame.id); }, { passive: false });
+    grid.appendChild(cell);
   }
 }
 
-function captureVideoFrame() {
-  const v = $('camera-video');
-  if (!v.videoWidth) return null;
-  const c = document.createElement('canvas');
-  c.width = v.videoWidth;
-  c.height = v.videoHeight;
-  c.getContext('2d').drawImage(v, 0, 0);
-  return c;
+function selectFrame(id) {
+  selectedFrame = id;
+  // 選択枠を消して全セル選択不可に
+  document.querySelectorAll('.frame-cell').forEach(c => {
+    c.classList.remove('selected');
+    c.style.pointerEvents = 'none';
+  });
+  // フレーム選択画面のまま蟻アニメーション開始
+  setTimeout(() => startAntInvasion(), 300);
 }
 
-// ===== 中央クロップ (プレビュー・最終合成で共通使用) =====
-function getCenterCrop(video) {
-  const vw = video.videoWidth, vh = video.videoHeight;
-  const size = vw * 0.72;
-  return { x: (vw - size) / 2, y: vh * 0.02, w: size, h: size * 1.1 };
+/* ===== CAMERA ===== */
+let cameraStream = null;
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    $('camera-video').srcObject = cameraStream;
+    await new Promise(r => { $('camera-video').onloadedmetadata = r; });
+  } catch(e) { console.warn('Camera unavailable:', e); }
 }
 
-// ===== 楕円クリップ描画 (プレビュー・最終合成で共通使用) =====
-function drawFaceInOval(ctx, video, bgW, bgH) {
-  if (!video || !video.videoWidth) return;
-  const crop = getCenterCrop(video);
-  const cx = bgW * OVAL.cx;
-  const cy = bgH * OVAL.cy;
-  const rx = bgW * OVAL.rx;
-  const ry = bgH * OVAL.ry;
-  ctx.save();
-  ctx.beginPath();
-  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-  ctx.clip();
-  ctx.drawImage(video, crop.x, crop.y, crop.w, crop.h, cx - rx, cy - ry, rx * 2, ry * 2);
-  ctx.restore();
+/* ===== ANT INVASION (フレーム選択画面の上で動作) ===== */
+const ANT_SPRITES = ['/ant1.png', '/ant2.png', '/ant3.png', '/ant4.png'];
+const ANT_SPRITE_MS = 130;
+
+function startAntInvasion() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const AW = Math.min(W * 0.22, 130); // 蟻の表示幅
+  const AH = AW * 0.65;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:800;overflow:hidden;pointer-events:none;';
+  document.body.appendChild(overlay);
+
+  // 12匹: 左から6匹（頭右向き→反転）・右から6匹（頭左向き→そのまま）
+  const configs = [
+    // 左から右へ
+    { sx: -AW,   sy: H * 0.10, tx: W * 0.30, toRight: true,  sp: 1.8 },
+    { sx: -AW,   sy: H * 0.28, tx: W * 0.20, toRight: true,  sp: 1.4 },
+    { sx: -AW,   sy: H * 0.44, tx: W * 0.35, toRight: true,  sp: 2.0 },
+    { sx: -AW,   sy: H * 0.60, tx: W * 0.22, toRight: true,  sp: 1.6 },
+    { sx: -AW,   sy: H * 0.74, tx: W * 0.38, toRight: true,  sp: 2.1 },
+    { sx: -AW,   sy: H * 0.88, tx: W * 0.28, toRight: true,  sp: 1.8 },
+    // 右から左へ
+    { sx: W + AW, sy: H * 0.06, tx: W * 0.65, toRight: false, sp: 1.6 },
+    { sx: W + AW, sy: H * 0.22, tx: W * 0.72, toRight: false, sp: 2.0 },
+    { sx: W + AW, sy: H * 0.38, tx: W * 0.60, toRight: false, sp: 1.5 },
+    { sx: W + AW, sy: H * 0.54, tx: W * 0.68, toRight: false, sp: 2.1 },
+    { sx: W + AW, sy: H * 0.70, tx: W * 0.62, toRight: false, sp: 1.9 },
+    { sx: W + AW, sy: H * 0.84, tx: W * 0.70, toRight: false, sp: 2.0 },
+  ];
+
+  const ants = configs.map((cfg, i) => {
+    const img = document.createElement('img');
+    img.src = ANT_SPRITES[i % ANT_SPRITES.length];
+    img.style.cssText = `
+      position:absolute;
+      width:${AW}px; height:${AH}px;
+      object-fit:contain;
+      left:${cfg.sx}px; top:${cfg.sy}px;
+      transform:scaleX(${cfg.toRight ? -1 : 1});
+    `;
+    overlay.appendChild(img);
+    return { el: img, x: cfg.sx, y: cfg.sy, toRight: cfg.toRight, sp: cfg.sp, fi: Math.floor(Math.random() * 4), ft: 0 };
+  });
+
+  const WALK_DURATION = 3000; // 蟻が歩く時間(ms)。経過後に正面蟻へ
+  let startTs = null;
+  let frontStarted = false;
+
+  function animateWalk(now) {
+    if (startTs === null) startTs = now;
+
+    ants.forEach(a => {
+      // 止まらず進み続ける。画面外に出たら反対側から再入場（ループ）
+      a.x += a.toRight ? a.sp : -a.sp;
+      if (a.toRight && a.x > W + AW)      a.x = -AW;
+      else if (!a.toRight && a.x < -AW)   a.x = W + AW;
+      a.el.style.left = a.x + 'px';
+
+      // スプライト切り替え（歩行）
+      if (now - a.ft > ANT_SPRITE_MS) {
+        a.fi = (a.fi + 1) % ANT_SPRITES.length;
+        a.el.src = ANT_SPRITES[a.fi];
+        a.ft = now;
+      }
+    });
+
+    if (now - startTs < WALK_DURATION) {
+      requestAnimationFrame(animateWalk);
+    } else if (!frontStarted) {
+      frontStarted = true;
+      // 横歩き蟻を全て消す
+      ants.forEach(a => a.el.remove());
+      showFrontAnt(overlay, W, H, ants);
+    }
+  }
+  requestAnimationFrame(animateWalk);
 }
 
-// ===== 背景画像キャッシュ =====
+const FRONT_SPRITES = ['/ant_front1.png', '/ant_front2.png', '/ant_front3.png', '/ant_front4.png'];
+const FRONT_SPRITE_MS = 160; // 1コマあたりの表示時間(ms)
+
+async function showFrontAnt(overlay, W, H, ants) {
+  // 存在するフレームを確認
+  const available = await Promise.all(
+    FRONT_SPRITES.map(src => new Promise(resolve => {
+      const img = new Image();
+      img.onload  = () => resolve(src);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    }))
+  );
+  const frames = available.filter(Boolean);
+  if (frames.length === 0) frames.push('/ant_front.png');
+
+  const baseSize = Math.min(W, H) * 0.55;
+  const front = document.createElement('img');
+  front.src = frames[0];
+  front.style.cssText = `
+    position:absolute;
+    left:50%; top:50%;
+    width:${baseSize}px; height:auto;
+    transform:translate(-50%,-50%) scale(0.3);
+    z-index:10;
+  `;
+  overlay.appendChild(front);
+
+  // 1→2→3→4 を1回だけ順番に表示してから、最終フレームでスケールアップ
+  const playFrames = (idx) => {
+    front.src = frames[idx];
+    if (idx < frames.length - 1) {
+      // 次のフレームへ
+      setTimeout(() => playFrames(idx + 1), FRONT_SPRITE_MS);
+    } else {
+      // 最終フレーム到達 → スケールアップ開始
+      front.style.transition = 'transform 1.4s cubic-bezier(0.2, 0.0, 0.9, 0.6)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        front.style.transform = 'translate(-50%,-50%) scale(22)';
+      }));
+
+      // ブラックアウト
+      setTimeout(() => {
+        const blackout = document.createElement('div');
+        blackout.style.cssText = 'position:fixed;inset:0;background:#000;z-index:900;opacity:0;transition:opacity 0.5s ease;';
+        document.body.appendChild(blackout);
+        requestAnimationFrame(() => requestAnimationFrame(() => { blackout.style.opacity = '1'; }));
+        setTimeout(() => {
+          overlay.remove();
+          blackout.remove();
+          startCaptureCountdown();
+        }, 600);
+      }, 1000);
+    }
+  };
+
+  playFrames(0);
+}
+
+/* ===== FACE PANEL ===== */
+const OVAL = { cx: 0.50, cy: 0.43, rx: 0.16, ry: 0.10 };
 let bgImage = null;
 function loadBg() {
   return new Promise(resolve => {
@@ -479,84 +731,33 @@ function loadBg() {
   });
 }
 
-// ===== 画像合成 (最終保存用) =====
-async function compositeImage() {
-  const bg = await loadBg();
-  const W = bg.naturalWidth, H = bg.naturalHeight;
-  const canvas = $('result-canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(bg, 0, 0, W, H);
-  drawFaceInOval(ctx, $('camera-video'), W, H);
-  return canvas;
+function getCenterCrop(video) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const size = Math.min(vw, vh) * 0.9;
+  // yOffset: 正の値→下にずらす（PCウェブカム向け調整）
+  const yOffset = vh * 0.05;
+  return {
+    x: (vw - size) / 2,
+    y: Math.max(0, Math.min((vh - size) / 2 + yOffset, vh - size)),
+    w: size,
+    h: size
+  };
 }
 
-// ===== サーバーへ保存 =====
-async function uploadImage(canvas) {
-  try {
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-    const res = await fetch('/save-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: dataUrl })
-    });
-    const data = await res.json();
-    return data.url;
-  } catch(e) {
-    console.error('Upload error:', e);
-    return null;
-  }
+function drawFaceInOval(ctx, video, bgW, bgH) {
+  if (!video || !video.videoWidth) return;
+  const crop = getCenterCrop(video);
+  const cx = bgW * OVAL.cx, cy = bgH * OVAL.cy;
+  const rx = bgW * OVAL.rx, ry = bgH * OVAL.ry;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(video, crop.x, crop.y, crop.w, crop.h, cx - rx, cy - ry, rx * 2, ry * 2);
+  ctx.restore();
 }
 
-// ===== QRコード生成 =====
-function generateQR(url) {
-  $('qr-code').innerHTML = '';
-  new QRCode($('qr-code'), {
-    text: url,
-    width: 180, height: 180,
-    colorDark: '#000', colorLight: '#fff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
-}
-
-// ===== クイズ =====
-function showQuiz(index) {
-  currentQ = index;
-  const q = QUESTIONS[index];
-  $('quiz-progress').textContent = `${index + 1} / ${QUESTIONS.length}`;
-  $('quiz-q-num').textContent = `Q.0${index + 1}`;
-  $('quiz-q-text').textContent = q.q;
-
-  const wrap = $('quiz-choices');
-  wrap.innerHTML = '';
-  q.choices.forEach((text, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'choice-btn';
-    btn.textContent = `${'ABC'[i]}.  ${text}`;
-    btn.addEventListener('click', () => onChoiceClick());
-    wrap.appendChild(btn);
-  });
-
-  showScreen('screen-quiz');
-}
-
-function onChoiceClick() {
-  document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
-
-  const isLast = currentQ === QUESTIONS.length - 1;
-
-  $('wrong-text').textContent = QUESTIONS[currentQ].wrong;
-  showScreen('screen-wrong');
-
-  setTimeout(() => {
-    if (isLast) {
-      startCaptureCountdown();
-    } else {
-      showQuiz(currentQ + 1);
-    }
-  }, 2400);
-}
-
+/* ===== CAPTURE COUNTDOWN ===== */
 let previewRaf = null;
 
 async function startCaptureCountdown() {
@@ -567,56 +768,155 @@ async function startCaptureCountdown() {
   previewCanvas.width  = bg.naturalWidth;
   previewCanvas.height = bg.naturalHeight;
   const ctx = previewCanvas.getContext('2d');
+  const video = $('camera-video');
 
-  // リアルタイム合成プレビュー: 毎フレーム背景＋ライブ映像を描画
+  // パネル画像 + 穴にリアルタイム顔合成
   function drawPreview() {
     ctx.drawImage(bg, 0, 0, bg.naturalWidth, bg.naturalHeight);
-    drawFaceInOval(ctx, $('camera-video'), bg.naturalWidth, bg.naturalHeight);
+    drawFaceInOval(ctx, video, bg.naturalWidth, bg.naturalHeight);
     previewRaf = requestAnimationFrame(drawPreview);
   }
   drawPreview();
 
-  let count = 5;
-  $('capture-countdown').textContent = count;
+  const countEl = $('capture-countdown');
+  let count = 3;
+  countEl.textContent = count;
 
   const timer = setInterval(() => {
     count--;
     if (count > 0) {
-      $('capture-countdown').textContent = count;
+      countEl.classList.remove('flash');
+      void countEl.offsetWidth;
+      countEl.textContent = count;
+      countEl.classList.add('flash');
     } else {
       clearInterval(timer);
       cancelAnimationFrame(previewRaf);
       previewRaf = null;
-      showScreen('screen-processing');
-      processResult();
+      countEl.textContent = '📸';
+      setTimeout(() => {
+        showScreen('screen-processing');
+        processResult();
+      }, 600);
     }
   }, 1000);
+}
+
+/* ===== COMPOSITE ===== */
+async function compositeImage() {
+  const bg = await loadBg();
+  const W = bg.naturalWidth, H = bg.naturalHeight;
+  const canvas = $('result-canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 1. 背景（顔はめパネル）
+  ctx.drawImage(bg, 0, 0, W, H);
+  // 2. 顔
+  drawFaceInOval(ctx, $('camera-video'), W, H);
+  // ※ フレームオーバーレイは一旦無効化（フレームがはまらないため）
+
+  return canvas;
+}
+
+/* ===== UPLOAD & QR ===== */
+async function uploadImage(canvas) {
+  try {
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+    const res = await fetch('/save-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl })
+    });
+    const data = await res.json();
+    return data.url;
+  } catch(e) { console.error('Upload error:', e); return null; }
+}
+
+function generateQR(url) {
+  $('qr-code').innerHTML = '';
+  new QRCode($('qr-code'), {
+    text: url, width: 180, height: 180,
+    colorDark: '#000', colorLight: '#fff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
 }
 
 async function processResult() {
   const canvas = await compositeImage();
   const url = await uploadImage(canvas);
   showScreen('screen-result');
-  if (url) {
-    generateQR(url);
-  } else {
-    $('qr-code').textContent = '通信エラー';
-  }
+  if (url) generateQR(url);
+  else $('qr-code').textContent = '通信エラー';
 }
 
-// ===== リトライ =====
+/* ===== QUIZ ===== */
+function setupQuiz() {
+  document.querySelectorAll('.quiz-choice').forEach(btn => {
+    btn.disabled = false;
+    btn.onclick = () => {
+      document.querySelectorAll('.quiz-choice').forEach(b => b.disabled = true);
+      const correct = btn.dataset.correct === '1';
+      showJudge(correct);
+    };
+  });
+  showScreen('screen-quiz');
+}
+
+function showJudge(correct) {
+  const mark = $('judge-mark');
+  const text = $('judge-text');
+  const sub  = $('judge-sub');
+  mark.className = correct ? 'correct' : 'wrong';
+  if (correct) {
+    mark.textContent = '○';
+    text.textContent = '正解だ！';
+    sub.textContent = 'さすがEDFの精鋭だ！\n貴官のような者が地球を守る。\nさあ、記念撮影だ！';
+  } else {
+    mark.textContent = '×';
+    text.textContent = 'FAILED';
+    sub.textContent = '残念だったな、新兵。\nその知識では巨大生物に勝てんぞ。\n…せめて記念撮影でもしていけ。';
+  }
+  showScreen('screen-judge');
+
+  setTimeout(() => {
+    selectedFrame = 0;
+    buildFrameGrid();
+    showScreen('screen-frames');
+
+    if (correct) {
+      // 正解: フレームを選択できる（通常通り）
+      $('frames-subtitle').textContent = 'フレームを選んでください';
+    } else {
+      // 不正解: フレーム選択不可。眺めているうちに蟻が押し寄せる
+      $('frames-subtitle').textContent = '…フレームを選ぶ間もなく…';
+      document.querySelectorAll('.frame-cell').forEach(c => {
+        c.style.pointerEvents = 'none';
+      });
+      setTimeout(() => startAntInvasion(), 1800);
+    }
+  }, 2400);
+}
+
+/* ===== RETRY ===== */
 $('btn-retry').addEventListener('click', () => {
   $('qr-code').innerHTML = '';
-  showQuiz(0);
+  selectedFrame = 0;
+  setupQuiz();
 });
 
-// ===== スタート =====
-$('btn-start').addEventListener('click', async () => {
+/* ===== START ===== */
+$('start-btn').addEventListener('click', onStart);
+$('start-btn').addEventListener('touchend', e => { e.preventDefault(); onStart(); }, { passive: false });
+
+async function onStart() {
+  $('start-btn').classList.add('launching');
+  setTimeout(() => $('start-btn').classList.remove('launching'), 450);
   await startCamera();
-  showQuiz(0);
-});
+  setupQuiz();
+}
 
-// サーバーをスリープさせない (5分ごとにpingを送る)
+/* ===== PING ===== */
 setInterval(() => fetch('/ping').catch(() => {}), 5 * 60 * 1000);
 </script>
 </body>
