@@ -536,7 +536,7 @@ async function buildFrameGrid(disabled = false) {
   grid.innerHTML = '';
   for (const frame of FRAMES) {
     const cell = document.createElement('div');
-    cell.className = 'frame-cell' + (frame.id === selectedFrame ? ' selected' : '');
+    cell.className = 'frame-cell';
     cell.dataset.id = frame.id;
 
     const pngImg = await loadFrameImage(frame.id);
@@ -655,14 +655,13 @@ function startAntInvasion() {
       }
     });
 
-    if (now - startTs < WALK_DURATION) {
-      requestAnimationFrame(animateWalk);
-    } else if (!frontStarted) {
+    // 蟻は消さず歩き続ける
+    if (!frontStarted && now - startTs >= WALK_DURATION) {
       frontStarted = true;
-      // 横歩き蟻を全て消す
-      ants.forEach(a => a.el.remove());
       showFrontAnt(overlay, W, H, ants);
     }
+    // overlayが削除されたら（撮影へ移行）ループ停止
+    if (overlay.isConnected) requestAnimationFrame(animateWalk);
   }
   requestAnimationFrame(animateWalk);
 }
@@ -727,7 +726,7 @@ async function showFrontAnt(overlay, W, H, ants) {
 }
 
 /* ===== FACE PANEL ===== */
-const OVAL = { cx: 0.48, cy: 0.39, rx: 0.085, ry: 0.060, rot: 10 }; // rot=傾き(度), 正で右
+const OVAL = { cx: 0.48, cy: 0.39, rx: 0.083, ry: 0.060, rot: 10 }; // rot=傾き(度), 正で右
 let bgImage = null;
 function loadBg() {
   return new Promise(resolve => {
