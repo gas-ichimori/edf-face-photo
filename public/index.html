@@ -727,7 +727,7 @@ async function showFrontAnt(overlay, W, H, ants) {
 
 /* ===== FACE PANEL ===== */
 const OVAL_LOSE = { cx: 0.48, cy: 0.39, rx: 0.083, ry: 0.060, rot: 10 }; // 不正解用
-const OVAL_WIN  = { cx: 0.47, cy: 0.30, rx: 0.075, ry: 0.060, rot: 0  }; // 正解用
+const OVAL_WIN  = { cx: 0.47, cy: 0.20, rx: 0.075, ry: 0.050, rot: 0  }; // 正解用
 let currentOval = OVAL_LOSE;
 let lastQuizCorrect = false;
 let bgImage = null;
@@ -886,7 +886,7 @@ function showJudge(correct) {
   if (correct) {
     mark.textContent = '○';
     text.textContent = '正解だ！';
-    sub.textContent = 'さすがEDFの精鋭だ！\n貴官のような者が地球を守る。\nさあ、記念撮影だ！';
+    sub.textContent = 'あなたは巨大生物を殲滅しました。\nさあ、記念撮影だ！';
   } else {
     mark.textContent = '×';
     text.textContent = 'FAILED';
