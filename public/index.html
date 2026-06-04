@@ -726,14 +726,18 @@ async function showFrontAnt(overlay, W, H, ants) {
 }
 
 /* ===== FACE PANEL ===== */
-const OVAL = { cx: 0.48, cy: 0.39, rx: 0.083, ry: 0.060, rot: 10 }; // rot=傾き(度), 正で右
+const OVAL_LOSE = { cx: 0.48, cy: 0.39, rx: 0.083, ry: 0.060, rot: 10 }; // 不正解用
+const OVAL_WIN  = { cx: 0.47, cy: 0.30, rx: 0.075, ry: 0.060, rot: 0  }; // 正解用
+let currentOval = OVAL_LOSE;
+let lastQuizCorrect = false;
 let bgImage = null;
-function loadBg() {
+function loadBg(isCorrect = false) {
+  currentOval = isCorrect ? OVAL_WIN : OVAL_LOSE;
+  bgImage = null;
   return new Promise(resolve => {
-    if (bgImage) { resolve(bgImage); return; }
     const img = new Image();
     img.onload = () => { bgImage = img; resolve(img); };
-    img.src = '/image_edf_face_panel.png';
+    img.src = isCorrect ? '/image_edf_face_panel_win.png' : '/image_edf_face_panel.png';
   });
 }
 
@@ -753,9 +757,9 @@ function getCenterCrop(video) {
 function drawFaceInOval(ctx, video, bgW, bgH) {
   if (!video || !video.videoWidth) return;
   const crop = getCenterCrop(video);
-  const cx = bgW * OVAL.cx, cy = bgH * OVAL.cy;
-  const rx = bgW * OVAL.rx, ry = bgH * OVAL.ry;
-  const rot = ((OVAL.rot || 0) * Math.PI) / 180;
+  const cx = bgW * currentOval.cx, cy = bgH * currentOval.cy;
+  const rx = bgW * currentOval.rx, ry = bgH * currentOval.ry;
+  const rot = ((currentOval.rot || 0) * Math.PI) / 180;
   ctx.save();
   // 楕円中心を基準に回転
   ctx.translate(cx, cy);
@@ -774,7 +778,7 @@ async function startCaptureCountdown() {
   showScreen('screen-capture');
 
   const previewCanvas = $('capture-preview-canvas');
-  const bg = await loadBg();
+  const bg = await loadBg(lastQuizCorrect);
   previewCanvas.width  = bg.naturalWidth;
   previewCanvas.height = bg.naturalHeight;
   const ctx = previewCanvas.getContext('2d');
@@ -814,7 +818,7 @@ async function startCaptureCountdown() {
 
 /* ===== COMPOSITE ===== */
 async function compositeImage() {
-  const bg = await loadBg();
+  const bg = await loadBg(lastQuizCorrect);
   const W = bg.naturalWidth, H = bg.naturalHeight;
   const canvas = $('result-canvas');
   canvas.width = W; canvas.height = H;
@@ -867,6 +871,7 @@ function setupQuiz() {
     btn.onclick = () => {
       document.querySelectorAll('.quiz-choice').forEach(b => b.disabled = true);
       const correct = btn.dataset.correct === '1';
+      lastQuizCorrect = correct;
       showJudge(correct);
     };
   });
