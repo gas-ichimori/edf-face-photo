@@ -727,7 +727,7 @@ async function showFrontAnt(overlay, W, H, ants) {
 
 /* ===== FACE PANEL ===== */
 const OVAL_LOSE = { cx: 0.48, cy: 0.39, rx: 0.083, ry: 0.060, rot: 10 }; // 不正解用
-const OVAL_WIN  = { cx: 0.45, cy: 0.28, rx: 0.070, ry: 0.050, rot: 0  }; // 正解用
+const OVAL_WIN  = { cx: 0.46, cy: 0.18, rx: 0.070, ry: 0.040, rot: 0  }; // 正解用
 let currentOval = OVAL_LOSE;
 let lastQuizCorrect = false;
 let bgImage = null;
@@ -859,6 +859,9 @@ function generateQR(url) {
 async function processResult() {
   const canvas = await compositeImage();
   const url = await uploadImage(canvas);
+  $('result-alert').textContent = lastQuizCorrect
+    ? '⚠️あなたは巨大生物を殲滅しました⚠️'
+    : '⚠ あなたは巨大生物に捕まりました ⚠';
   showScreen('screen-result');
   if (url) generateQR(url);
   else $('qr-code').textContent = '通信エラー';
