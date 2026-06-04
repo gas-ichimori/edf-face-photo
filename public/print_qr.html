@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>EDF PHOTO SPOT — QR</title>
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+      background: #efefef;
+      font-family: 'Courier New', Courier, monospace;
+      color: #1a3a1a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ======= スキャンライン風装飾ライン ======= */
+    .line-top, .line-bottom {
+      position: absolute;
+      left: 12mm;
+      right: 12mm;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #2a8a2a, #4ef44e, #2a8a2a, transparent);
+      z-index: 2;
+    }
+    .line-top  { top: 14mm; }
+    .line-bottom { bottom: 14mm; }
+
+    .line-left, .line-right {
+      position: absolute;
+      top: 14mm;
+      bottom: 14mm;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, #2a8a2a, #4ef44e, #2a8a2a, transparent);
+      z-index: 2;
+    }
+    .line-left  { left: 12mm; }
+    .line-right { right: 12mm; }
+
+    /* 四隅ブラケット */
+    .corner {
+      position: absolute;
+      width: 8mm;
+      height: 8mm;
+      z-index: 3;
+    }
+    .corner.tl { top: 11mm;  left: 11mm;  border-top: 3px solid #4ef44e; border-left: 3px solid #4ef44e; }
+    .corner.tr { top: 11mm;  right: 11mm; border-top: 3px solid #4ef44e; border-right: 3px solid #4ef44e; }
+    .corner.bl { bottom: 11mm; left: 11mm;  border-bottom: 3px solid #4ef44e; border-left: 3px solid #4ef44e; }
+    .corner.br { bottom: 11mm; right: 11mm; border-bottom: 3px solid #4ef44e; border-right: 3px solid #4ef44e; }
+
+    /* ======= メインレイアウト ======= */
+    .layout {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22mm 20mm 18mm;
+    }
+
+    /* ロゴ群 */
+    .logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5mm;
+      margin-bottom: 5mm;
+    }
+    .logo {
+      height: 20mm;
+      object-fit: contain;
+      filter: drop-shadow(0 0 8px rgba(0,160,0,0.8)) drop-shadow(0 0 16px rgba(0,120,0,0.5));
+    }
+
+    /* タイトル */
+    .hub-title {
+      font-size: 26pt;
+      font-weight: 900;
+      letter-spacing: 0.25em;
+      color: #0a2a0a;
+      text-shadow: 0 0 12px rgba(0,200,0,0.7), 0 0 28px rgba(0,160,0,0.4);
+      text-align: center;
+      line-height: 1;
+      margin-bottom: 2mm;
+    }
+
+    .hub-sub {
+      font-size: 9pt;
+      letter-spacing: 0.4em;
+      color: #2a5a2a;
+      text-align: center;
+      margin-bottom: 9mm;
+    }
+
+    /* 区切り */
+    .divider {
+      width: 120mm;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #4ef44e 30%, #4ef44e 70%, transparent);
+      margin-bottom: 9mm;
+    }
+
+    /* QRコードエリア */
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5mm;
+      margin-bottom: 9mm;
+    }
+
+    .qr-frame {
+      padding: 6mm;
+      background: #fff;
+      border: 2px solid #4ef44e;
+      box-shadow:
+        0 0 0 1px rgba(78,244,78,0.3),
+        0 0 30px rgba(78,244,78,0.25),
+        inset 0 0 0 1px rgba(78,244,78,0.2);
+    }
+
+    #qr canvas, #qr img { display: block; }
+
+    .qr-label {
+      font-size: 7pt;
+      letter-spacing: 0.25em;
+      color: #2a6a2a;
+      text-align: center;
+    }
+
+    /* URL */
+    .url-text {
+      font-size: 10pt;
+      letter-spacing: 0.08em;
+      color: #0a2a0a;
+      text-align: center;
+      border: 1px solid #2a6a2a;
+      padding: 2mm 8mm;
+      background: rgba(0,100,0,0.08);
+    }
+
+    /* 著作権 */
+    .copyright {
+      position: absolute;
+      bottom: 16mm;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 6pt;
+      letter-spacing: 0.15em;
+      color: #555;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    /* 上部ステータスバー */
+    .status-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7pt;
+      color: #2a5a2a;
+      letter-spacing: 0.15em;
+      margin-bottom: 8mm;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="line-top"></div>
+  <div class="line-bottom"></div>
+  <div class="line-left"></div>
+  <div class="line-right"></div>
+
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div class="layout">
+
+    <div class="status-bar">
+      <span>EDF // DIGITAL PHOTO SPOT</span>
+      <span>ACCESS CODE: QR-02</span>
+    </div>
+
+    <div class="logos">
+      <img src="logo1.png" class="logo" alt="EDF 6.1x2">
+      <img src="logo2.png" class="logo" alt="EDF 6">
+      <img src="logo3.png" class="logo" alt="EDF 5">
+    </div>
+
+    <div class="hub-title">PHOTO&nbsp;SPOT</div>
+    <div class="hub-sub">地球防衛軍 デジタルフォトスポット</div>
+
+    <div class="divider"></div>
+
+    <div class="qr-section">
+      <div class="qr-frame">
+        <div id="qr"></div>
+      </div>
+      <div class="qr-label">▲ SCAN TO START ▲</div>
+    </div>
+
+    <div class="url-text">https://edf-face-photo.onrender.com</div>
+
+  </div>
+
+  <div class="copyright">© D3PUBLISHER INC. All rights reserved.</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script>
+    new QRCode(document.getElementById("qr"), {
+      text: "https://edf-face-photo.onrender.com",
+      width: 210,
+      height: 210,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  </script>
+
+</body>
+</html>
